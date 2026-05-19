@@ -77,12 +77,12 @@
     .floating-char.person .char-img-wrap img { width: 115px; height: 115px; }
     .floating-char.cat .char-img-wrap img { width: 88px; height: 88px; }
 
-    .char-img-wrap .char-gif {
-      display: none;
+    .char-img-wrap img {
+      display: block;
       object-fit: contain;
     }
-    .floating-char.person .char-img-wrap .char-gif { width: 115px; height: 115px; }
-    .floating-char.cat .char-img-wrap .char-gif { width: 88px; height: 88px; }
+    .floating-char.person .char-img-wrap img { width: 115px; height: 115px; }
+    .floating-char.cat .char-img-wrap img { width: 88px; height: 88px; }
 
     .char-badge { display: none; }
 
@@ -886,19 +886,15 @@
       .quote-featured { grid-column: span 1; }
       .timeline-wrap { padding-left: 40px; }
 
-      .floating-char.person .char-img-wrap img,
-      .floating-char.person .char-img-wrap .char-gif { width: 72px; height: 72px; }
-      .floating-char.cat .char-img-wrap img,
-      .floating-char.cat .char-img-wrap .char-gif { width: 56px; height: 56px; }
+      .floating-char.person .char-img-wrap img { width: 72px; height: 72px; }
+      .floating-char.cat .char-img-wrap img { width: 56px; height: 56px; }
 
       section.hero { padding: 80px 24px; }
     }
 
     @media (min-width: 769px) and (max-width: 1024px) {
-      .floating-char.person .char-img-wrap img,
-      .floating-char.person .char-img-wrap .char-gif { width: 90px; height: 90px; }
-      .floating-char.cat .char-img-wrap img,
-      .floating-char.cat .char-img-wrap .char-gif { width: 68px; height: 68px; }
+      .floating-char.person .char-img-wrap img { width: 90px; height: 90px; }
+      .floating-char.cat .char-img-wrap img { width: 68px; height: 68px; }
       section { padding: 100px 40px; }
     }
   </style>
@@ -906,50 +902,29 @@
 <body>
 
   <!-- ===== FLOATING CHARACTERS ===== -->
-  <div class="floating-char person anim-work" id="char-summer" data-name="summer"
+  <div class="floating-char person" id="char-summer" data-name="summer"
        style="top: 12%; left: 5%;">
-    <div class="char-img-wrap">
-      <img src="images/Summer.png" alt="Summer">
-      <img src="images/video/Summer忙碌.gif" class="char-gif vid-anim-work">
-    </div>
-    <div class="char-badge" id="badge-summer">疯狂工作中 💻</div>
+    <div class="char-img-wrap"><img src="images/video/Summer忙碌.gif" alt="Summer"></div>
   </div>
 
-  <div class="floating-char person anim-write" id="char-erica" data-name="erica"
+  <div class="floating-char person" id="char-erica" data-name="erica"
        style="top: 22%; right: 5%;">
-    <div class="char-img-wrap">
-      <img src="images/Erica.png" alt="Erica">
-      <img src="images/video/Erica忙碌.gif" class="char-gif vid-anim-write">
-    </div>
-    <div class="char-badge" id="badge-erica">写内容中 ✍️</div>
+    <div class="char-img-wrap"><img src="images/video/Erica忙碌.gif" alt="Erica"></div>
   </div>
 
-  <div class="floating-char cat anim-wanwan-eat" id="char-wanwan" data-name="wanwan"
+  <div class="floating-char cat" id="char-wanwan" data-name="wanwan"
        style="top: 45%; left: 15%;">
-    <div class="char-img-wrap">
-      <img src="images/碗碗.png" alt="碗碗">
-      <img src="images/video/碗碗吃饭.gif" class="char-gif vid-anim-wanwan-eat">
-    </div>
-    <div class="char-badge" id="badge-wanwan">吃饭中 🍽️</div>
+    <div class="char-img-wrap"><img src="images/video/碗碗吃饭.gif" alt="碗碗"></div>
   </div>
 
-  <div class="floating-char cat anim-zhuzhu-play" id="char-zhuzhu" data-name="zhuzhu"
+  <div class="floating-char cat" id="char-zhuzhu" data-name="zhuzhu"
        style="top: 35%; right: 14%;">
-    <div class="char-img-wrap">
-      <img src="images/珠珠.png" alt="珠珠">
-      <img src="images/video/珠珠玩耍.gif" class="char-gif vid-anim-zhuzhu-play">
-    </div>
-    <div class="char-badge" id="badge-zhuzhu">玩耍中 🎾</div>
+    <div class="char-img-wrap"><img src="images/video/珠珠玩耍.gif" alt="珠珠"></div>
   </div>
 
-  <div class="floating-char cat anim-kaka-spoil" id="char-kaka" data-name="kaka"
+  <div class="floating-char cat" id="char-kaka" data-name="kaka"
        style="top: 58%; right: 8%;">
-    <div class="char-img-wrap">
-      <img src="images/卡卡.png" alt="卡卡">
-      <img src="images/video/卡卡睡觉.gif" class="char-gif vid-anim-kaka-sleep">
-      <img src="images/video/卡卡撒娇.gif" class="char-gif vid-anim-kaka-spoil">
-    </div>
-    <div class="char-badge" id="badge-kaka">撒娇中 🥰</div>
+    <div class="char-img-wrap"><img src="images/video/卡卡撒娇.gif" alt="卡卡"></div>
   </div>
 
   <div class="page-hint" id="pageHint">拖拽角色到任意位置 · 点击切换状态</div>
@@ -1448,11 +1423,7 @@
       var moved = dragState.dist > 5;
       el.classList.remove('dragging');
 
-      if (!moved) {
-        switchState(el.dataset.name);
-      } else {
-        savePositions();
-      }
+      if (moved) { savePositions(); }
       dragState = null;
     }
 
@@ -1563,14 +1534,7 @@
 
     function init() {
       loadPositions();
-
       document.querySelectorAll('.floating-char').forEach(setupCharDrag);
-
-      document.querySelectorAll('.floating-char img:not(.char-gif)').forEach(function(img) {
-        removeWhiteBg(img);
-      });
-
-      initVideos();
       setupScrollReveal();
       setupHint();
     }
