@@ -81,8 +81,6 @@
       display: none;
       object-fit: contain;
     }
-    .floating-char.has-video .char-img-wrap > img:not(.char-gif) { display: none; }
-    .floating-char.has-video .char-img-wrap .char-gif.active { display: block; }
     .floating-char.person .char-img-wrap .char-gif { width: 115px; height: 115px; }
     .floating-char.cat .char-img-wrap .char-gif { width: 88px; height: 88px; }
 
@@ -1490,20 +1488,21 @@
       el.classList.remove.apply(el.classList, allAnimClasses);
       el.classList.add(state.anim);
 
-      // Toggle between GIF and static img
+      // Toggle between GIF and static img (use style.display for reliability)
       var wrap = el.querySelector('.char-img-wrap');
       if (wrap) {
         var gifs = wrap.querySelectorAll('.char-gif');
+        var staticImg = wrap.querySelector('img:not(.char-gif)');
         // Hide all GIFs first
         for (var v = 0; v < gifs.length; v++) {
-          gifs[v].classList.remove('active');
+          gifs[v].style.display = 'none';
         }
         if (state.video) {
           var gif = wrap.querySelector('.vid-' + state.anim);
-          if (gif) { gif.classList.add('active'); }
-          el.classList.add('has-video');
+          if (gif) { gif.style.display = 'block'; }
+          if (staticImg) { staticImg.style.display = 'none'; }
         } else {
-          el.classList.remove('has-video');
+          if (staticImg) { staticImg.style.display = 'block'; }
         }
       }
 
@@ -1551,10 +1550,13 @@
         var el = document.getElementById('char-' + name);
         if (!el) return;
         var state = charStates[name][currentIdx[name]];
+        var wrap = el.querySelector('.char-img-wrap');
+        if (!wrap) return;
+        var staticImg = wrap.querySelector('img:not(.char-gif)');
         if (state && state.video) {
           var gif = el.querySelector('.vid-' + state.anim);
-          if (gif) { gif.classList.add('active'); }
-          el.classList.add('has-video');
+          if (gif) { gif.style.display = 'block'; }
+          if (staticImg) { staticImg.style.display = 'none'; }
         }
       });
     }
