@@ -1,0 +1,1585 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SE — Summer & Erica</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #FBF7F2;
+      --text: #2C2416;
+      --muted: #8C8278;
+      --accent: #C2854A;
+      --accent-light: #E8D5C0;
+      --card: #FFFFFF;
+      --border: #E8E0D5;
+      --tag-bg: #F5EDE4;
+      --shadow: 0 2px 20px rgba(44,36,22,0.06);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: "Georgia", "Noto Serif SC", "Source Han Serif SC", serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== FLOATING CHARACTERS ===== */
+    .floating-char {
+      position: fixed;
+      z-index: 30;
+      cursor: grab;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    .floating-char:active { cursor: grabbing; }
+
+    .floating-char.dragging {
+      z-index: 1000;
+    }
+
+    .floating-char.dragging .char-img-wrap {
+      transform: scale(1.12);
+    }
+
+    .char-img-wrap {
+      position: relative;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.35s ease;
+    }
+
+    .floating-char:hover .char-img-wrap {
+      transform: scale(1.08);
+    }
+
+    .floating-char.switching .char-img-wrap {
+      animation: switchPulse 0.35s ease;
+    }
+
+    @keyframes switchPulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(0.85); }
+      100% { transform: scale(1); }
+    }
+
+    .floating-char img {
+      display: block;
+      object-fit: contain;
+    }
+
+    .floating-char.person .char-img-wrap img { width: 115px; height: 115px; }
+    .floating-char.cat .char-img-wrap img { width: 88px; height: 88px; }
+
+    .char-img-wrap .char-gif {
+      display: none;
+      object-fit: contain;
+    }
+    .floating-char.has-video .char-img-wrap > img:not(.char-gif) { display: none; }
+    .floating-char.has-video .char-img-wrap .char-gif.active { display: block; }
+    .floating-char.person .char-img-wrap .char-gif { width: 115px; height: 115px; }
+    .floating-char.cat .char-img-wrap .char-gif { width: 88px; height: 88px; }
+
+    .char-badge { display: none; }
+
+    /* ===== PERSON ANIMATIONS ===== */
+    .anim-work .char-img-wrap { animation: a-work 0.18s ease-in-out infinite; transition: none; }
+    @keyframes a-work { 0%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} 60%{transform:translateY(-3px)} }
+
+    .anim-feed .char-img-wrap { animation: a-feed 1.8s ease-in-out infinite; transition: none; }
+    @keyframes a-feed { 0%,100%{transform:translateY(0) rotate(0deg)} 20%{transform:translateY(12px) rotate(-8deg)} 35%{transform:translateY(7px) rotate(-4deg)} 50%{transform:translateY(14px) rotate(5deg)} 65%{transform:translateY(8px) rotate(2deg)} 80%{transform:translateY(4px) rotate(-2deg)} }
+
+    .anim-learn .char-img-wrap { animation: a-learn 2.5s ease-in-out infinite; transition: none; }
+    @keyframes a-learn { 0%,100%{transform:translateY(0) rotate(0deg)} 15%{transform:translateY(-5px) rotate(-4deg)} 35%{transform:translateY(-2px) rotate(0deg)} 55%{transform:translateY(-6px) rotate(4deg)} 75%{transform:translateY(-3px) rotate(0deg)} }
+
+    .anim-rest .char-img-wrap { animation: a-rest 5s ease-in-out infinite; transition: none; }
+    @keyframes a-rest { 0%,100%{transform:translateX(0) rotate(0deg)} 20%{transform:translateX(15px) rotate(3deg)} 45%{transform:translateX(-5px) rotate(1deg)} 70%{transform:translateX(-15px) rotate(-3deg)} 85%{transform:translateX(5px) rotate(-1deg)} }
+
+    .anim-write .char-img-wrap { animation: a-write 0.14s ease-in-out infinite; transition: none; }
+    @keyframes a-write { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} 70%{transform:translateY(-2px)} }
+
+    .anim-data .char-img-wrap { animation: a-data 2s ease-in-out infinite; transition: none; }
+    @keyframes a-data { 0%,100%{transform:translateX(0) rotate(0deg)} 20%{transform:translateX(14px) rotate(4deg)} 40%{transform:translateX(8px) rotate(1deg)} 60%{transform:translateX(-14px) rotate(-4deg)} 80%{transform:translateX(-6px) rotate(-2deg)} }
+
+    .anim-slack .char-img-wrap { animation: a-slack 4s ease-in-out infinite; transition: none; }
+    @keyframes a-slack { 0%,100%{transform:rotate(0deg) translateY(0)} 15%{transform:rotate(-5deg) translateY(-3px)} 35%{transform:rotate(6deg) translateY(-6px)} 55%{transform:rotate(-4deg) translateY(-2px)} 75%{transform:rotate(3deg) translateY(-5px)} }
+
+    /* ==================== */
+    /* === 碗碗 — 金渐层 · 贪吃憨厚 === */
+    /* ==================== */
+
+    /* 碗碗·吃饭：埋头猛吃 → 快速点头 + 低头前倾 + 咀嚼微晃 */
+    .anim-wanwan-eat .char-img-wrap { animation: a-wanwan-eat 1.3s ease-in-out infinite; transition: none; }
+    @keyframes a-wanwan-eat {
+      0%  {transform:translateY(0) rotate(0deg)}
+      10% {transform:translateY(6px) rotate(-5deg)}  /* 俯身低头，凑近食盆 */
+      18% {transform:translateY(-4px) rotate(-2deg)}  /* 快速咬一口抬头 */
+      26% {transform:translateY(6px) rotate(-5deg)}  /* 又低头 */
+      34% {transform:translateY(-3px) rotate(-1deg)}  /* 嚼 */
+      42% {transform:translateY(5px) rotate(-6deg)}  /* 再低头猛吃 */
+      50% {transform:translateY(-5px) rotate(-3deg)}  /* 抬头大嚼 */
+      58% {transform:translateY(3px) rotate(-4deg)}  /* 继续吃 */
+      66% {transform:translateY(-2px) rotate(-1deg)}  /* 细嚼 */
+      74% {transform:translateY(5px) rotate(-5deg)}  /* 最后一口 */
+      85% {transform:translateY(0) rotate(0deg)}     /* 吃完回正 */
+      100%{transform:translateY(0) rotate(0deg)}
+    }
+
+    /* 碗碗·睡觉：肚皮大幅度呼吸起伏 */
+    .anim-wanwan-sleep .char-img-wrap { animation: a-wanwan-sleep 4s ease-in-out infinite; transition: none; }
+    @keyframes a-wanwan-sleep {
+      0%  {transform:scale(1) translateY(0)}
+      25% {transform:scale(1.13) translateY(-4px)}   /* 深吸气，肚皮鼓起 */
+      50% {transform:scale(1.14) translateY(-5px)}   /* 屏住 */
+      55% {transform:scale(1.12) translateY(-3px)}   /* 开始呼气 */
+      75% {transform:scale(1) translateY(0)}         /* 完全呼出 */
+      100%{transform:scale(1) translateY(0)}         /* 停顿 */
+    }
+
+    /* 碗碗·玩耍：缓慢左右翻滚 */
+    .anim-wanwan-play .char-img-wrap { animation: a-wanwan-play 3.2s ease-in-out infinite; transition: none; }
+    @keyframes a-wanwan-play {
+      0%  {transform:translateX(0) rotate(0deg)}
+      15% {transform:translateX(18px) rotate(8deg)}   /* 滚到右边 */
+      30% {transform:translateX(8px) rotate(3deg)}    /* 往回收一点 */
+      45% {transform:translateX(-18px) rotate(-8deg)} /* 滚到左边 */
+      60% {transform:translateX(-6px) rotate(-2deg)}  /* 停一下 */
+      70% {transform:translateY(-12px)}               /* 弹一下 */
+      80% {transform:translateY(0) translateX(0) rotate(0deg)} /* 落回 */
+      100%{transform:translateX(0) rotate(0deg)}
+    }
+
+    /* 碗碗·撒娇：整身贴过来 → 向前位移 + 身体贴合 */
+    .anim-wanwan-spoil .char-img-wrap { animation: a-wanwan-spoil 2s ease-in-out infinite; transition: none; }
+    @keyframes a-wanwan-spoil {
+      0%  {transform:translate(0,0) scale(1)}
+      18% {transform:translate(-6px,-14px) scale(1.16)}  /* 猛扑过来贴着蹭（向前+放大） */
+      30% {transform:translate(8px,-12px) scale(1.13)}   /* 往右蹭 */
+      42% {transform:translate(-8px,-14px) scale(1.15)}  /* 往左蹭 */
+      54% {transform:translate(6px,-10px) scale(1.10)}   /* 继续蹭 */
+      66% {transform:translate(-4px,-12px) scale(1.12)}  /* 又蹭回来 */
+      78% {transform:translate(0,-6px) scale(1.06)}      /* 贴着不走了 */
+      100%{transform:translate(0,0) scale(1)}            /* 退回去准备下一轮 */
+    }
+
+    /* ==================== */
+    /* === 珠珠 — 银渐层 · 优雅傲娇 === */
+    /* ==================== */
+
+    /* 珠珠·吃饭：小口细品 → 缓慢点头，偶尔停顿 */
+    .anim-zhuzhu-eat .char-img-wrap { animation: a-zhuzhu-eat 3.5s ease-in-out infinite; transition: none; }
+    @keyframes a-zhuzhu-eat {
+      0%  {transform:translateY(0) rotate(0deg)}
+      12% {transform:translateY(3px) rotate(2deg)}   /* 低头凑近 */
+      18% {transform:translateY(0) rotate(1deg)}     /* 咬一小口，抬头 */
+      25% {transform:translateY(0) rotate(0deg)}     /* 细嚼慢咽… */
+      45% {transform:translateY(0) rotate(0deg)}     /* 还在嚼… */
+      55% {transform:translateY(2px) rotate(-2deg)}  /* 再吃一口 */
+      62% {transform:translateY(0) rotate(0deg)}     /* 细嚼 */
+      75% {transform:translateY(0) rotate(0deg)}     /* 品味中 */
+      85% {transform:translateY(2px) rotate(2deg)}   /* 最后一口 */
+      92% {transform:translateY(0) rotate(0deg)}     /* 优雅地吃完 */
+      100%{transform:translateY(0) rotate(0deg)}
+    }
+
+    /* 珠珠·睡觉：蜷缩轻微晃动 + 偶尔小幅度抽动 */
+    .anim-zhuzhu-sleep .char-img-wrap { animation: a-zhuzhu-sleep 4.5s ease-in-out infinite; transition: none; }
+    @keyframes a-zhuzhu-sleep {
+      0%  {transform:scale(1) rotate(0deg)}
+      20% {transform:scale(1.04) rotate(1deg)}       /* 轻轻呼吸 */
+      40% {transform:scale(1) rotate(0deg)}          /* 呼 */
+      60% {transform:scale(1.03) rotate(-1deg)}      /* 又吸 */
+      78% {transform:scale(1) rotate(0deg)}          /* 呼 */
+      82% {transform:scale(1) rotate(5deg)}          /* 耳朵抽动！ */
+      84% {transform:scale(1) rotate(-2deg)}         /* 弹回来 */
+      86% {transform:scale(1) rotate(2deg)}          /* 小余颤 */
+      88% {transform:scale(1) rotate(0deg)}          /* 安静 */
+      100%{transform:scale(1) rotate(0deg)}
+    }
+
+    /* 珠珠·玩耍：小幅度警觉跳跃 + 小扑击 */
+    .anim-zhuzhu-play .char-img-wrap { animation: a-zhuzhu-play 2.4s ease-in-out infinite; transition: none; }
+    @keyframes a-zhuzhu-play {
+      0%  {transform:translateY(0) scale(1) rotate(0deg)}
+      15% {transform:translateY(4px) scale(0.94)}       /* 蹲下蓄力 */
+      25% {transform:translateY(-18px) scale(1.04) rotate(4deg)}  /* 扑出去！ */
+      32% {transform:translateY(0) scale(1) rotate(3deg)}         /* 落地 */
+      40% {transform:rotate(-6deg)}                    /* 左看 */
+      48% {transform:rotate(6deg)}                     /* 右看 */
+      55% {transform:translateY(3px) scale(0.95)}      /* 又蹲下 */
+      62% {transform:translateY(-10px) scale(1.02) rotate(-3deg)} /* 小扑 */
+      70% {transform:translateY(0) scale(1) rotate(0deg)}         /* 落回 */
+      100%{transform:translateY(0) scale(1) rotate(0deg)}
+    }
+
+    /* 珠珠·撒娇：蹭几下后退半步 → 往返位移动画（傲娇！） */
+    .anim-zhuzhu-spoil .char-img-wrap { animation: a-zhuzhu-spoil 3s ease-in-out infinite; transition: none; }
+    @keyframes a-zhuzhu-spoil {
+      0%  {transform:translate(0,0) scale(1)}
+      20% {transform:translate(5px,-8px) scale(1.06)}   /* 慢慢靠过来 */
+      32% {transform:translate(-3px,-6px) scale(1.04)}  /* 轻轻蹭一下 */
+      40% {transform:translate(6px,2px) scale(0.97)}    /* 退后半步！*/
+      50% {transform:translate(4px,2px) scale(0.97)}    /* 犹豫… */
+      62% {transform:translate(3px,-7px) scale(1.05)}   /* 又靠过来 */
+      74% {transform:translate(-5px,-9px) scale(1.07)}  /* 再蹭一下 */
+      85% {transform:translate(3px,-3px) scale(1.02)}   /* 还要不要蹭呢… */
+      100%{transform:translate(0,0) scale(1)}           /* 走开了 */
+    }
+
+    /* ==================== */
+    /* === 卡卡 — 银点/蓝金 · 神经质舞者 === */
+    /* ==================== */
+
+    /* 卡卡·吃饭：边吃边扭，身体左右欢快摇摆 */
+    .anim-kaka-eat .char-img-wrap { animation: a-kaka-eat 1s ease-in-out infinite; transition: none; }
+    @keyframes a-kaka-eat {
+      0%  {transform:translateY(0) translateX(0) rotate(0deg)}
+      15% {transform:translateY(-5px) translateX(5px) rotate(8deg)}   /* 抬头歪右边嚼 */
+      30% {transform:translateY(-3px) translateX(-5px) rotate(-7deg)} /* 歪左边嚼 */
+      45% {transform:translateY(-6px) translateX(3px) rotate(6deg)}   /* 又歪右边 */
+      55% {transform:translateY(-2px) translateX(-4px) rotate(-5deg)} /* 扭到左边 */
+      65% {transform:translateY(-5px) translateX(6px) rotate(9deg)}   /* 欢快大扭 */
+      75% {transform:translateY(-2px) translateX(-3px) rotate(-6deg)} /* 扭回来 */
+      85% {transform:translateY(-4px) translateX(0) rotate(0deg)}     /* 回中 */
+      100%{transform:translateY(0) translateX(0) rotate(0deg)}        /* 暂停 */
+    }
+
+    /* 卡卡·睡觉：做梦抽搐 + 左右翻身 */
+    .anim-kaka-sleep .char-img-wrap { animation: a-kaka-sleep 5s ease-in-out infinite; transition: none; }
+    @keyframes a-kaka-sleep {
+      0%  {transform:translateX(0) rotate(0deg)}
+      15% {transform:translateX(8px) rotate(12deg)}   /* 翻到右侧躺 */
+      28% {transform:translateX(10px) rotate(14deg)}   /* 睡熟了 */
+      30% {transform:translateX(12px) rotate(18deg)}   /* 做梦抽搐！ */
+      33% {transform:translateX(9px) rotate(10deg)}    /* 抽完 */
+      50% {transform:translateX(2px) rotate(3deg)}     /* 慢慢翻回 */
+      60% {transform:translateX(-8px) rotate(-12deg)}  /* 翻到左侧躺 */
+      75% {transform:translateX(-10px) rotate(-14deg)} /* 左侧睡熟 */
+      77% {transform:translateX(-13px) rotate(-20deg)} /* 又抽一下！ */
+      80% {transform:translateX(-8px) rotate(-10deg)}  /* 安静 */
+      92% {transform:translateX(0) rotate(0deg)}       /* 翻回平躺 */
+      100%{transform:translateX(0) rotate(0deg)}
+    }
+
+    /* 卡卡·玩耍：旋转跳跃 + 圆周旋转 + 弹跳 */
+    .anim-kaka-play .char-img-wrap { animation: a-kaka-play 1.6s ease-in-out infinite; transition: none; }
+    @keyframes a-kaka-play {
+      0%  {transform:translateY(0) rotate(0deg)}
+      12% {transform:translateY(-8px) rotate(45deg)}    /* 起跳+旋转 */
+      24% {transform:translateY(-22px) rotate(90deg)}   /* 空中旋转！ */
+      36% {transform:translateY(-10px) rotate(135deg)}  /* 开始下落 */
+      48% {transform:translateY(0) rotate(180deg)}      /* 落地，转了半圈 */
+      60% {transform:translateY(-16px) rotate(270deg)}  /* 弹起来继续转 */
+      72% {transform:translateY(-6px) rotate(315deg)}   /* 快转完了 */
+      84% {transform:translateY(0) rotate(360deg)}      /* 落地站稳 */
+      100%{transform:translateY(0) rotate(360deg)}      /* 准备下一轮 */
+    }
+
+    /* 卡卡·撒娇：疯狂蹭贴 → 高频往复位移 + 抖动 + 放大 */
+    .anim-kaka-spoil .char-img-wrap { animation: a-kaka-spoil 1.4s ease-in-out infinite; transition: none; }
+    @keyframes a-kaka-spoil {
+      0%  {transform:translate(0,0) scale(1)}
+      8%  {transform:translate(-4px,-12px) scale(1.18)}  /* 一个箭步冲过来 */
+      16% {transform:translate(12px,-14px) scale(1.15)}  /* 疯狂蹭右边 */
+      24% {transform:translate(-12px,-12px) scale(1.14)} /* 疯狂蹭左边 */
+      32% {transform:translate(10px,-14px) scale(1.16)}  /* 蹭右边 */
+      40% {transform:translate(-10px,-10px) scale(1.12)} /* 蹭左边 */
+      48% {transform:translate(8px,-12px) scale(1.14)}   /* 蹭蹭蹭 */
+      56% {transform:translate(-8px,-13px) scale(1.13)}  /* 完全停不下来 */
+      64% {transform:translate(6px,-10px) scale(1.10)}   /* 还在蹭 */
+      72% {transform:translate(-6px,-12px) scale(1.11)}  /* 根本不想停 */
+      82% {transform:translate(0,-6px) scale(1.07)}      /* 终于慢下来 */
+      92% {transform:translate(0,-3px) scale(1.03)}      /* 贴着喘口气 */
+      100%{transform:translate(0,0) scale(1)}            /* 退回去，马上又要来 */
+    }
+
+    /* Override: disable all state CSS animations (video handles real animation) */
+    .floating-char .char-img-wrap { animation: none; }
+
+    /* ===== NAV ===== */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(251,247,242,0.92);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ===== SECTIONS ===== */
+    section {
+      padding: 120px 48px;
+      position: relative;
+      z-index: 20;
+    }
+
+    section.alt { background: #F5F0EA; }
+
+    .section-inner { max-width: 1024px; margin: 0 auto; }
+
+    .section-center { text-align: center; }
+
+    .section-label {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    .section-heading {
+      font-size: clamp(32px, 5vw, 46px);
+      font-weight: bold;
+      line-height: 1.2;
+      margin-bottom: 56px;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      background: transparent;
+    }
+
+    .hero-name {
+      font-size: clamp(64px, 12vw, 140px);
+      font-weight: bold;
+      letter-spacing: 4px;
+      line-height: 0.9;
+      margin-bottom: 20px;
+    }
+
+    .hero-line {
+      width: 40px;
+      height: 1px;
+      background: var(--accent);
+      margin: 28px auto;
+    }
+
+    .hero-desc {
+      font-size: 17px;
+      color: var(--muted);
+      max-width: 500px;
+      line-height: 1.9;
+      margin-bottom: 8px;
+    }
+
+    .hero-scroll {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      margin-top: 48px;
+      opacity: 0.5;
+    }
+
+    /* ===== ABOUT ===== */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+
+    .about-card {
+      background: var(--card);
+      padding: 48px 40px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      text-align: center;
+      transition: box-shadow 0.3s;
+    }
+
+    .about-card:hover { box-shadow: 0 8px 36px rgba(44,36,22,0.10); }
+
+    .about-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--accent-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      font-size: 28px;
+      font-weight: bold;
+      color: var(--accent);
+      overflow: hidden;
+    }
+    .about-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .about-name { font-size: 22px; font-weight: bold; margin-bottom: 6px; }
+
+    .about-role {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 12px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .about-bio {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .about-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .about-tag {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+    }
+
+    /* ===== DIMENSIONS ===== */
+    .dim-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .dim-card {
+      background: var(--card);
+      padding: 48px 36px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    .dim-card:hover { background: #FDFBF8; }
+
+    .dim-icon { font-size: 40px; margin-bottom: 20px; display: block; }
+
+    .dim-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; }
+
+    .dim-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+
+    .dim-list {
+      list-style: none;
+      text-align: left;
+    }
+
+    .dim-list li {
+      font-size: 13px;
+      color: var(--text);
+      padding: 7px 0;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.6;
+    }
+
+    .dim-list li::before {
+      content: "· ";
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* ===== CATS ===== */
+    .cats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+
+    .cat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 40px 28px;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .cat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 36px rgba(44,36,22,0.10);
+    }
+
+    .cat-card-icon {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 42px;
+      background: var(--tag-bg);
+      overflow: hidden;
+    }
+    .cat-card-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .cat-name { font-size: 20px; font-weight: bold; margin-bottom: 6px; }
+
+    .cat-info {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      margin-bottom: 12px;
+    }
+
+    .cat-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-bottom: 12px;
+    }
+
+    .cat-mood {
+      font-size: 13px;
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    /* ===== TIMELINE ===== */
+    .timeline-wrap {
+      position: relative;
+      padding-left: 56px;
+    }
+
+    .timeline-wrap::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 0;
+      bottom: 0;
+      width: 1px;
+      background: var(--border);
+    }
+
+    .tl-item {
+      position: relative;
+      margin-bottom: 60px;
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+
+    .tl-item.visible { opacity: 1; transform: translateY(0); }
+    .tl-item:last-child { margin-bottom: 0; }
+
+    .tl-dot {
+      position: absolute;
+      left: -44px;
+      top: 6px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 5px #FBF7F2, 0 0 0 6px var(--accent);
+    }
+
+    .tl-dot.now {
+      background: var(--text);
+      box-shadow: 0 0 0 5px #FBF7F2, 0 0 0 6px var(--text);
+    }
+
+    .tl-date {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .tl-title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+
+    .tl-desc { font-size: 15px; color: var(--muted); line-height: 1.8; }
+
+    .tl-tag {
+      display: inline-block;
+      margin-top: 12px;
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--accent);
+      border: 1px solid var(--accent-light);
+      padding: 3px 12px;
+    }
+
+    /* ===== QUOTES ===== */
+    .quote-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .quote-card {
+      background: var(--card);
+      padding: 48px 40px;
+      position: relative;
+    }
+
+    .quote-mark {
+      font-size: 64px;
+      color: var(--accent-light);
+      line-height: 1;
+      position: absolute;
+      top: 16px;
+      left: 28px;
+    }
+
+    .quote-text {
+      font-size: 19px;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 18px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .quote-author {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--accent);
+    }
+
+    .quote-featured {
+      background: var(--text);
+      grid-column: span 2;
+      text-align: center;
+      padding: 64px 48px;
+    }
+
+    .quote-featured .quote-text {
+      font-size: 28px;
+      color: var(--bg);
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+
+    .quote-featured .quote-author { color: var(--accent-light); }
+
+    /* ===== CASES ===== */
+    .cases-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+    }
+
+    .case-card {
+      background: var(--card);
+      padding: 48px 36px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    .case-card:hover { background: #FDFBF8; }
+
+    .case-num {
+      font-size: 48px;
+      font-weight: bold;
+      color: var(--accent-light);
+      line-height: 1;
+      margin-bottom: 20px;
+    }
+
+    .case-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; }
+
+    .case-desc {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+
+    .case-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+    }
+
+    .case-tag {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: var(--accent);
+      border: 1px solid var(--accent-light);
+      padding: 2px 10px;
+    }
+
+    /* ===== SOCIAL ===== */
+    .social-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+    }
+
+    .social-person {
+      background: var(--card);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      padding: 48px 40px;
+      text-align: center;
+    }
+
+    .social-person-name {
+      font-size: 22px;
+      font-weight: bold;
+      margin-bottom: 32px;
+    }
+
+    .social-links {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .social-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      text-decoration: none;
+      border: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .social-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: #FDFBF8;
+    }
+
+    .social-link-text {
+      color: var(--muted);
+      cursor: default;
+      border-style: dashed;
+    }
+
+    .social-link-icon { font-size: 16px; }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--text);
+      padding: 80px 48px;
+      text-align: center;
+      position: relative;
+      z-index: 20;
+    }
+
+    .footer-logo {
+      font-size: 42px;
+      font-weight: bold;
+      letter-spacing: 12px;
+      color: var(--bg);
+      display: block;
+      margin-bottom: 18px;
+    }
+
+    .footer-tagline { font-size: 15px; color: var(--muted); margin-bottom: 48px; }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      list-style: none;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: var(--bg); }
+
+    .footer-copy {
+      font-family: "Helvetica Neue", "PingFang SC", sans-serif;
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.5;
+    }
+
+    /* ===== HINT ===== */
+    .page-hint { display: none; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-links { display: none; }
+      section { padding: 80px 24px; }
+
+      .about-grid { grid-template-columns: 1fr; gap: 24px; }
+      .dim-grid { grid-template-columns: 1fr; }
+      .cats-grid { grid-template-columns: 1fr; gap: 24px; }
+      .cases-grid { grid-template-columns: 1fr; }
+      .social-two-col { grid-template-columns: 1fr; gap: 24px; }
+      .quote-grid { grid-template-columns: 1fr; }
+      .quote-featured { grid-column: span 1; }
+      .timeline-wrap { padding-left: 40px; }
+
+      .floating-char.person .char-img-wrap img,
+      .floating-char.person .char-img-wrap .char-gif { width: 72px; height: 72px; }
+      .floating-char.cat .char-img-wrap img,
+      .floating-char.cat .char-img-wrap .char-gif { width: 56px; height: 56px; }
+
+      section.hero { padding: 80px 24px; }
+    }
+
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .floating-char.person .char-img-wrap img,
+      .floating-char.person .char-img-wrap .char-gif { width: 90px; height: 90px; }
+      .floating-char.cat .char-img-wrap img,
+      .floating-char.cat .char-img-wrap .char-gif { width: 68px; height: 68px; }
+      section { padding: 100px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== FLOATING CHARACTERS ===== -->
+  <div class="floating-char person anim-work" id="char-summer" data-name="summer"
+       style="top: 12%; left: 5%;">
+    <div class="char-img-wrap">
+      <img src="images/Summer.png" alt="Summer">
+      <img src="images/video/Summer忙碌.gif" class="char-gif vid-anim-work">
+    </div>
+    <div class="char-badge" id="badge-summer">疯狂工作中 💻</div>
+  </div>
+
+  <div class="floating-char person anim-write" id="char-erica" data-name="erica"
+       style="top: 22%; right: 5%;">
+    <div class="char-img-wrap">
+      <img src="images/Erica.png" alt="Erica">
+      <img src="images/video/Erica忙碌.gif" class="char-gif vid-anim-write">
+    </div>
+    <div class="char-badge" id="badge-erica">写内容中 ✍️</div>
+  </div>
+
+  <div class="floating-char cat anim-wanwan-eat" id="char-wanwan" data-name="wanwan"
+       style="top: 45%; left: 15%;">
+    <div class="char-img-wrap">
+      <img src="images/碗碗.png" alt="碗碗">
+      <img src="images/video/碗碗吃饭.gif" class="char-gif vid-anim-wanwan-eat">
+    </div>
+    <div class="char-badge" id="badge-wanwan">吃饭中 🍽️</div>
+  </div>
+
+  <div class="floating-char cat anim-zhuzhu-play" id="char-zhuzhu" data-name="zhuzhu"
+       style="top: 35%; right: 14%;">
+    <div class="char-img-wrap">
+      <img src="images/珠珠.png" alt="珠珠">
+      <img src="images/video/珠珠玩耍.gif" class="char-gif vid-anim-zhuzhu-play">
+    </div>
+    <div class="char-badge" id="badge-zhuzhu">玩耍中 🎾</div>
+  </div>
+
+  <div class="floating-char cat anim-kaka-spoil" id="char-kaka" data-name="kaka"
+       style="top: 58%; right: 8%;">
+    <div class="char-img-wrap">
+      <img src="images/卡卡.png" alt="卡卡">
+      <img src="images/video/卡卡睡觉.gif" class="char-gif vid-anim-kaka-sleep">
+      <img src="images/video/卡卡撒娇.gif" class="char-gif vid-anim-kaka-spoil">
+    </div>
+    <div class="char-badge" id="badge-kaka">撒娇中 🥰</div>
+  </div>
+
+  <div class="page-hint" id="pageHint">拖拽角色到任意位置 · 点击切换状态</div>
+
+  <!-- ===== NAV ===== -->
+  <nav>
+    <a href="#" class="nav-logo">SE</a>
+    <ul class="nav-links">
+      <li><a href="#about">我们俩</a></li>
+      <li><a href="#dimensions">日常</a></li>
+      <li><a href="#cats">三位猫主子</a></li>
+      <li><a href="#timeline">来时路</a></li>
+      <li><a href="#cases">做过的事</a></li>
+      <li><a href="#quotes">我们相信</a></li>
+      <li><a href="#social">找到我们</a></li>
+    </ul>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="hero">
+    <h1 class="hero-name">Summer<br>Erica</h1>
+    <div class="hero-line"></div>
+    <p class="hero-desc">两个女生，各自燃烧，合在一起发光。<br>记录思考，记录日常，记录三只猫，记录一切正在发生的。</p>
+    <p class="hero-scroll">↓ 往下看我们的故事</p>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about">
+    <div class="section-inner">
+      <p class="section-label section-center">Who We Are</p>
+      <h2 class="section-heading section-center">嗨，我们是 Summer 和 Erica</h2>
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-avatar"><img src="images/Summer.png" alt="Summer"></div>
+          <p class="about-name">Summer</p>
+          <p class="about-role">策略思维 · 长期主义</p>
+          <p class="about-bio">把每件事都想清楚之后才敢做，但一旦做了就不回头。负责选品、数据和复盘，坚信复利的力量。</p>
+          <div class="about-tags">
+            <span class="about-tag">选品策略</span>
+            <span class="about-tag">数据分析</span>
+            <span class="about-tag">深度复盘</span>
+            <span class="about-tag">猫奴</span>
+          </div>
+        </div>
+        <div class="about-card">
+          <div class="about-avatar"><img src="images/Erica.png" alt="Erica"></div>
+          <p class="about-name">Erica</p>
+          <p class="about-role">直觉行动 · 快速迭代</p>
+          <p class="about-bio">相信感觉，先跳进去再说——但跳进去之后绝不允许自己沉下去。负责内容、运营和用户洞察。</p>
+          <div class="about-tags">
+            <span class="about-tag">内容创作</span>
+            <span class="about-tag">运营增长</span>
+            <span class="about-tag">用户洞察</span>
+            <span class="about-tag">猫奴 x3</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DIMENSIONS: 生活·学习·工作 ===== -->
+  <section class="alt" id="dimensions">
+    <div class="section-inner">
+      <p class="section-label section-center">Daily Rhythm</p>
+      <h2 class="section-heading section-center">生活、学习、工作，就是我们的一天</h2>
+      <div class="dim-grid">
+        <div class="dim-card">
+          <span class="dim-icon">🏠</span>
+          <h3 class="dim-title">生活</h3>
+          <p class="dim-desc">创业之外，我们也是有血有肉的人。记录那些不被算法看见的瞬间。</p>
+          <ul class="dim-list">
+            <li>三只猫的拆家日常</li>
+            <li>深夜泡面与清晨咖啡</li>
+            <li>周末市集与灵感采集</li>
+            <li>合伙人互相投喂记录</li>
+            <li>焦虑、emo 与自我修复</li>
+          </ul>
+        </div>
+        <div class="dim-card">
+          <span class="dim-icon">📚</span>
+          <h3 class="dim-title">学习</h3>
+          <p class="dim-desc">不是学生的我们，比学生更饥渴。每本书、每门课、每次踩坑都是养分。</p>
+          <ul class="dim-list">
+            <li>每月书单与读书笔记</li>
+            <li>AI 工具实际落地学习</li>
+            <li>电商运营知识自学路径</li>
+            <li>从踩坑中总结的方法论</li>
+            <li>向厉害的人偷师的内容</li>
+          </ul>
+        </div>
+        <div class="dim-card">
+          <span class="dim-icon">💼</span>
+          <h3 class="dim-title">工作</h3>
+          <p class="dim-desc">不是为了打工而工作，是为了把想做的事做成。真实记录每一个决策。</p>
+          <ul class="dim-list">
+            <li>选品思路与决策过程</li>
+            <li>店铺数据复盘（真实数据）</li>
+            <li>内容策划与执行记录</li>
+            <li>AI 辅助工作的实际用法</li>
+            <li>合伙分工与协作笔记</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CATS: 三只猫 ===== -->
+  <section id="cats">
+    <div class="section-inner">
+      <p class="section-label section-center">Our Bosses</p>
+      <h2 class="section-heading section-center">三只猫咪三位老板</h2>
+      <div class="cats-grid">
+        <div class="cat-card">
+          <div class="cat-card-icon"><img src="images/碗碗.png" alt="碗碗"></div>
+          <p class="cat-name">碗碗</p>
+          <p class="cat-info">金渐层 · 公 · 约3岁</p>
+          <p class="cat-desc">体重不容忽视，存在感更不容忽视。每天的主要工作是监督我们不要摸鱼——他自己除外。</p>
+          <p class="cat-mood">「正在巡视领地中…」</p>
+        </div>
+        <div class="cat-card">
+          <div class="cat-card-icon"><img src="images/珠珠.png" alt="珠珠"></div>
+          <p class="cat-name">珠珠</p>
+          <p class="cat-info">银渐层 · 公 · 约2岁</p>
+          <p class="cat-desc">高冷是伪装，撒娇是本能。最喜欢趴在键盘上帮我们审核工作方案。</p>
+          <p class="cat-mood">「假装不关心你们在干嘛…」</p>
+        </div>
+        <div class="cat-card">
+          <div class="cat-card-icon"><img src="images/卡卡.png" alt="卡卡"></div>
+          <p class="cat-name">卡卡</p>
+          <p class="cat-info">银点/蓝金 · 母 · 约2岁</p>
+          <p class="cat-desc">传说中会跳舞的猫。精神状态领先我们至少三个版本，但恰恰是最治愈的那个。</p>
+          <p class="cat-mood">「正在策划今晚的夜行动物秀…」</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TIMELINE: 进化成长 ===== -->
+  <section class="alt" id="timeline">
+    <div class="section-inner">
+      <p class="section-label section-center">The Road Here</p>
+      <h2 class="section-heading section-center">那些值得被记住的时刻</h2>
+      <div class="timeline-wrap">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <p class="tl-date">2025 · 冬</p>
+          <h3 class="tl-title">「要不，我们一起做点什么吧」</h3>
+          <p class="tl-desc">一次深夜长谈，两个不甘心的女生决定不再只是聊聊。从这一句话开始，SE 的种子埋下了。</p>
+          <span class="tl-tag">起点</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <p class="tl-date">2026 · 01</p>
+          <h3 class="tl-title">第一间店，第一笔订单</h3>
+          <p class="tl-desc">拼多多店铺上线。第一单生成的那个晚上，我们盯着后台看了半小时，确认不是刷的才敢相信。</p>
+          <span class="tl-tag">里程碑</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <p class="tl-date">2026 · 02</p>
+          <h3 class="tl-title">被第一条差评击中</h3>
+          <p class="tl-desc">不是所有故事都一路高歌。那条差评让我们失眠了两晚，但也正是因为这件事，我们建立起了自己的品质标准。</p>
+          <span class="tl-tag">成长</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <p class="tl-date">2026 · 03</p>
+          <h3 class="tl-title">开始用 AI 武装自己</h3>
+          <p class="tl-desc">AI 不是噱头，是真的能改变工作方式。从写文案到分析数据，我们把 AI 真正用进了生意里。</p>
+          <span class="tl-tag">进化</span>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot now"></div>
+          <p class="tl-date">现在</p>
+          <h3 class="tl-title">未完待续……</h3>
+          <p class="tl-desc">故事还在写着。每一次选择、每一次碰壁、每一次「再来一次」，都是下一章的素材。这里会持续更新。</p>
+          <span class="tl-tag">进行中</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CASES: 做过的事 ===== -->
+  <section id="cases">
+    <div class="section-inner">
+      <p class="section-label section-center">Real Work</p>
+      <h2 class="section-heading section-center">我们一起做成的小事</h2>
+      <div class="cases-grid">
+        <div class="case-card">
+          <div class="case-num">01</div>
+          <h3 class="case-title">从 0 到第一单</h3>
+          <p class="case-desc">拼多多店铺从零搭建，选品、上架、出单。第一个订单生成时我们盯着屏幕反复确认，不敢相信真的有人买了。</p>
+          <div class="case-tags">
+            <span class="case-tag">拼多多</span>
+            <span class="case-tag">选品</span>
+            <span class="case-tag">供应链</span>
+          </div>
+        </div>
+        <div class="case-card">
+          <div class="case-num">02</div>
+          <h3 class="case-title">把真实记录下来</h3>
+          <p class="case-desc">小红书、抖音、公众号同步记录创业过程。不追热点、不搞套路，只是诚实地写我们踩过的坑和学到的东西。</p>
+          <div class="case-tags">
+            <span class="case-tag">小红书</span>
+            <span class="case-tag">抖音</span>
+            <span class="case-tag">公众号</span>
+          </div>
+        </div>
+        <div class="case-card">
+          <div class="case-num">03</div>
+          <h3 class="case-title">让 AI 真的帮上忙</h3>
+          <p class="case-desc">从写文案到分析店铺数据，把 AI 工具真正用进每一个工作环节。不是追风口，是真的好用就分享出来。</p>
+          <div class="case-tags">
+            <span class="case-tag">AI 提效</span>
+            <span class="case-tag">自动化</span>
+            <span class="case-tag">数据分析</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== QUOTES: 我们相信 ===== -->
+  <section id="quotes">
+    <div class="section-inner">
+      <p class="section-label section-center">What We Believe</p>
+      <h2 class="section-heading section-center">这些话，我们放在心里</h2>
+      <div class="quote-grid">
+        <div class="quote-card">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">不是等准备好了再出发，而是出发了才会准备好。</p>
+          <p class="quote-author">— Summer</p>
+        </div>
+        <div class="quote-card">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">赚钱不是目的，是让生活有更多选择权的工具。</p>
+          <p class="quote-author">— Erica</p>
+        </div>
+        <div class="quote-featured">
+          <p class="quote-text">「她说的话我没听进去，但她做的事我都记住了。」</p>
+          <p class="quote-author">— Summer 说 Erica，Erica 说 Summer</p>
+        </div>
+        <div class="quote-card">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">流量是借来的，口碑是自己的。</p>
+          <p class="quote-author">— Erica</p>
+        </div>
+        <div class="quote-card">
+          <span class="quote-mark">"</span>
+          <p class="quote-text">合伙人就是那个你可以对他说「我今天很丧」的人。</p>
+          <p class="quote-author">— Summer</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SOCIAL: 找到我们 ===== -->
+  <section class="alt" id="social">
+    <div class="section-inner">
+      <p class="section-label section-center">Find Us</p>
+      <h2 class="section-heading section-center">在这些地方，可以找到我们</h2>
+      <div class="social-two-col">
+        <!-- Summer -->
+        <div class="social-person">
+          <h3 class="social-person-name">Summer</h3>
+          <div class="social-links">
+            <a href="https://xhslink.com/m/4gTOHVsurmn" target="_blank" class="social-link">
+              <span class="social-link-icon">📕</span> 和Summer一起学AI
+            </a>
+            <a href="https://xhslink.com/m/8ZQBWYCDFUZ" target="_blank" class="social-link">
+              <span class="social-link-icon">📕</span> Summer碎碎念
+            </a>
+            <a href="https://v.douyin.com/XQ-d5YHP_1o/" target="_blank" class="social-link">
+              <span class="social-link-icon">🎵</span> 十一生（抖音）
+            </a>
+            <span class="social-link social-link-text">
+              <span class="social-link-icon">🎬</span> 视频号：和Summer一起学AI
+            </span>
+            <span class="social-link social-link-text">
+              <span class="social-link-icon">📰</span> 公众号：Summer的AI实战星球
+            </span>
+            <a href="https://www.zhihu.com/people/4dfc1f3a4fc0d08731462a8bce658246" target="_blank" class="social-link">
+              <span class="social-link-icon">💡</span> 知乎
+            </a>
+          </div>
+        </div>
+        <!-- Erica -->
+        <div class="social-person">
+          <h3 class="social-person-name">Erica</h3>
+          <div class="social-links">
+            <a href="https://xhslink.com/m/2axI3sGUFDO" target="_blank" class="social-link">
+              <span class="social-link-icon">📕</span> 小红书
+            </a>
+            <a href="https://v.douyin.com/QN7QtcCudvs/" target="_blank" class="social-link">
+              <span class="social-link-icon">🎵</span> 抖音
+            </a>
+            <a href="https://www.zhihu.com/people/ae18e1f0f613b52af3939ed3b124b456" target="_blank" class="social-link">
+              <span class="social-link-icon">💡</span> 知乎
+            </a>
+            <span class="social-link social-link-text">
+              <span class="social-link-icon">🎬</span> 视频号：小E的留白日记
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer>
+    <span class="footer-logo">SE</span>
+    <p class="footer-tagline">Summer & Erica · 两个女生 + 三只猫，在路上</p>
+    <ul class="footer-links">
+      <li><a href="#about">我们俩</a></li>
+      <li><a href="#dimensions">日常</a></li>
+      <li><a href="#cats">三位猫主子</a></li>
+      <li><a href="#timeline">来时路</a></li>
+      <li><a href="#cases">做过的事</a></li>
+      <li><a href="#quotes">我们相信</a></li>
+      <li><a href="#social">找到我们</a></li>
+    </ul>
+    <p class="footer-copy">© 2026 SE · 橘座认证</p>
+  </footer>
+
+  <script>
+  (function() {
+    // ===== CHARACTER STATE DEFINITIONS =====
+    var charStates = {
+      summer: [
+        { text: '疯狂工作中 💻', anim: 'anim-work', video: true },
+        { text: '喂猫中 🍽️', anim: 'anim-feed' },
+        { text: '学习中 📚', anim: 'anim-learn' },
+        { text: '休息中 ☕', anim: 'anim-rest' }
+      ],
+      erica: [
+        { text: '写内容中 ✍️', anim: 'anim-write', video: true },
+        { text: '喂猫中 🍽️', anim: 'anim-feed' },
+        { text: '看数据中 📊', anim: 'anim-data' },
+        { text: '摸鱼中 😌', anim: 'anim-slack' }
+      ],
+      wanwan: [
+        { text: '吃饭中 🍽️', anim: 'anim-wanwan-eat', video: true },
+        { text: '睡觉中 💤', anim: 'anim-wanwan-sleep' },
+        { text: '玩耍中 🎾', anim: 'anim-wanwan-play' },
+        { text: '撒娇中 🥰', anim: 'anim-wanwan-spoil' }
+      ],
+      zhuzhu: [
+        { text: '吃饭中 🍽️', anim: 'anim-zhuzhu-eat' },
+        { text: '睡觉中 💤', anim: 'anim-zhuzhu-sleep' },
+        { text: '玩耍中 🎾', anim: 'anim-zhuzhu-play', video: true },
+        { text: '撒娇中 🥰', anim: 'anim-zhuzhu-spoil' }
+      ],
+      kaka: [
+        { text: '吃饭中 🍽️', anim: 'anim-kaka-eat' },
+        { text: '睡觉中 💤', anim: 'anim-kaka-sleep', video: true },
+        { text: '玩耍中 🎾', anim: 'anim-kaka-play' },
+        { text: '撒娇中 🥰', anim: 'anim-kaka-spoil', video: true }
+      ]
+    };
+
+    var currentIdx = { summer: 0, erica: 0, wanwan: 0, zhuzhu: 2, kaka: 3 };
+
+    // Collect all animation class names for cleanup
+    var allAnimClasses = [];
+    Object.keys(charStates).forEach(function(k) {
+      charStates[k].forEach(function(s) {
+        if (allAnimClasses.indexOf(s.anim) === -1) allAnimClasses.push(s.anim);
+      });
+    });
+
+    // ===== WHITE BACKGROUND REMOVAL =====
+    function removeWhiteBg(imgEl, maxDim, threshold) {
+      maxDim = maxDim || 400;
+      threshold = threshold || 230;
+      var testImg = new Image();
+      testImg.onload = function() {
+        var w = testImg.naturalWidth;
+        var h = testImg.naturalHeight;
+        var ratio = Math.min(maxDim / w, maxDim / h, 1);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+
+        var canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(testImg, 0, 0, w, h);
+
+        try {
+          var imageData = ctx.getImageData(0, 0, w, h);
+          var data = imageData.data;
+          for (var i = 0; i < data.length; i += 4) {
+            var r = data[i], g = data[i+1], b = data[i+2];
+            if (r > threshold && g > threshold && b > threshold) {
+              var whiteness = (r + g + b) / 3;
+              var factor = (whiteness - threshold) / (255 - threshold);
+              data[i+3] = Math.round(data[i+3] * Math.max(0, 1 - factor));
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+          imgEl.src = canvas.toDataURL('image/png');
+        } catch (e) {
+          // Canvas tainted, keep original
+        }
+      };
+      testImg.onerror = function() { /* leave image as-is */ };
+      testImg.src = imgEl.src;
+    }
+
+    // ===== DRAG SYSTEM =====
+    var STORAGE_KEY = 'se-char-positions-v2';
+    var dragState = null;
+
+    function clamp(val, min, max) {
+      return Math.max(min, Math.min(max, val));
+    }
+
+    function setPos(el, left, top) {
+      el.style.left = left + 'px';
+      el.style.top = top + 'px';
+      el.style.right = 'auto';
+      el.style.bottom = 'auto';
+    }
+
+    function savePositions() {
+      var data = {};
+      document.querySelectorAll('.floating-char').forEach(function(el) {
+        var name = el.dataset.name;
+        var rect = el.getBoundingClientRect();
+        data[name] = { left: rect.left, top: rect.top };
+      });
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+    }
+
+    function loadPositions() {
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          var data = JSON.parse(raw);
+          document.querySelectorAll('.floating-char').forEach(function(el) {
+            var name = el.dataset.name;
+            if (data[name]) {
+              setPos(el, data[name].left, data[name].top);
+            }
+          });
+        }
+      } catch(e) {}
+    }
+
+    // Attach drag listeners to a single character
+    function setupCharDrag(el) {
+      el.addEventListener('mousedown', function(e) {
+        if (e.button !== 0) return;
+        startDrag(el, e.clientX, e.clientY);
+        e.preventDefault();
+      });
+
+      el.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) {
+          startDrag(el, e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+    }
+
+    function startDrag(el, clientX, clientY) {
+      var rect = el.getBoundingClientRect();
+      dragState = {
+        el: el,
+        startX: clientX,
+        startY: clientY,
+        origLeft: rect.left,
+        origTop: rect.top,
+        dist: 0
+      };
+      el.classList.add('dragging');
+    }
+
+    function onMove(clientX, clientY) {
+      if (!dragState) return;
+      var dx = clientX - dragState.startX;
+      var dy = clientY - dragState.startY;
+      dragState.dist += Math.abs(dx) + Math.abs(dy);
+
+      var el = dragState.el;
+      var rect = el.getBoundingClientRect();
+      var w = rect.width, h = rect.height;
+
+      var newLeft = clamp(dragState.origLeft + dx, -w * 0.35, window.innerWidth - w * 0.65);
+      var newTop = clamp(dragState.origTop + dy, -h * 0.35, window.innerHeight - h * 0.65);
+      setPos(el, newLeft, newTop);
+    }
+
+    function onEnd() {
+      if (!dragState) return;
+      var el = dragState.el;
+      var moved = dragState.dist > 5;
+      el.classList.remove('dragging');
+
+      if (!moved) {
+        switchState(el.dataset.name);
+      } else {
+        savePositions();
+      }
+      dragState = null;
+    }
+
+    document.addEventListener('mousemove', function(e) { onMove(e.clientX, e.clientY); });
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', function(e) {
+      if (dragState && e.touches.length === 1) {
+        onMove(e.touches[0].clientX, e.touches[0].clientY);
+        e.preventDefault();
+      }
+    }, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('selectstart', function(e) {
+      if (dragState) e.preventDefault();
+    });
+
+    // ===== STATE SWITCHING =====
+    function switchState(name) {
+      var el = document.getElementById('char-' + name);
+      var badge = document.getElementById('badge-' + name);
+      var states = charStates[name];
+      if (!el || !states) return;
+
+      // Pulse animation
+      el.classList.add('switching');
+      setTimeout(function() { el.classList.remove('switching'); }, 350);
+
+      // Advance state
+      currentIdx[name] = (currentIdx[name] + 1) % states.length;
+      var state = states[currentIdx[name]];
+
+      // Replace animation class
+      el.classList.remove.apply(el.classList, allAnimClasses);
+      el.classList.add(state.anim);
+
+      // Toggle between GIF and static img
+      var wrap = el.querySelector('.char-img-wrap');
+      if (wrap) {
+        var gifs = wrap.querySelectorAll('.char-gif');
+        // Hide all GIFs first
+        for (var v = 0; v < gifs.length; v++) {
+          gifs[v].classList.remove('active');
+        }
+        if (state.video) {
+          var gif = wrap.querySelector('.vid-' + state.anim);
+          if (gif) { gif.classList.add('active'); }
+          el.classList.add('has-video');
+        } else {
+          el.classList.remove('has-video');
+        }
+      }
+
+      // Update badge text
+      if (badge) badge.textContent = state.text;
+    }
+
+    // ===== TIMELINE SCROLL REVEAL =====
+    function setupScrollReveal() {
+      var items = document.querySelectorAll('.tl-item');
+      if (!items.length) return;
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) entry.target.classList.add('visible');
+        });
+      }, { threshold: 0.15 });
+      items.forEach(function(item) { observer.observe(item); });
+    }
+
+    // ===== HINT AUTO-HIDE =====
+    function setupHint() {
+      var hint = document.getElementById('pageHint');
+      if (!hint) return;
+      var timer;
+      function show() {
+        hint.classList.remove('fade');
+        clearTimeout(timer);
+        timer = setTimeout(function() { hint.classList.add('fade'); }, 8000);
+      }
+      show();
+      document.querySelectorAll('.floating-char').forEach(function(el) {
+        el.addEventListener('mousedown', function() {
+          hint.classList.add('fade');
+          clearTimeout(timer);
+        });
+        el.addEventListener('mouseup', function() {
+          timer = setTimeout(function() { hint.classList.add('fade'); }, 4000);
+        });
+      });
+    }
+
+    // ===== INIT =====
+    function initVideos() {
+      Object.keys(charStates).forEach(function(name) {
+        var el = document.getElementById('char-' + name);
+        if (!el) return;
+        var state = charStates[name][currentIdx[name]];
+        if (state && state.video) {
+          var gif = el.querySelector('.vid-' + state.anim);
+          if (gif) { gif.classList.add('active'); }
+          el.classList.add('has-video');
+        }
+      });
+    }
+
+    function init() {
+      loadPositions();
+
+      document.querySelectorAll('.floating-char').forEach(setupCharDrag);
+
+      document.querySelectorAll('.floating-char img:not(.char-gif)').forEach(function(img) {
+        removeWhiteBg(img);
+      });
+
+      initVideos();
+      setupScrollReveal();
+      setupHint();
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  })();
+  </script>
+
+</body>
+</html>

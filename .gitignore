@@ -1,0 +1,6 @@
+.DS_Store
+images/video/*.mp4
+demo-interaction.html
+images/backup/
+images/backup_v2/
+images/backup_v3/
